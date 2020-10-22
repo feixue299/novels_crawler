@@ -33,6 +33,29 @@ class NovelsSpider(scrapy.Spider):
             url = "http://m.txtwan.cc/read/{}/".format(str(n).split(".")[0].split("/")[2])
             yield scrapy.Request(url, callback=self.parse_novel)
 
+        
+        show_page = sel.xpath('//div[@class="page"]/a')
+        next_page = -1
+        end_page = -1
+        next_href = show_page
+        for a in show_page:
+            s = str(a.extract())
+            href = str(a.xpath('./@href').extract_first())
+            page = -1
+            if href != None:
+                page = int(href.split("/")[2].split('_')[1])
+            if s.find('下一页') > 0:
+                next_page = page
+                next_href = a
+            elif s.find('尾页') > 0:
+                end_page = page
+
+        if next_page <= end_page and next_page >= 0 and end_page >= 0:
+            href = next_href.xpath('./@href').extract_first()
+            url = "http://m.txtwan.cc{}".format(href)
+            yield scrapy.Request(url, callback=self.parse_category)    
+
+
     def parse_novel(self, response):
         sel = Selector(text=response.text, type='html')
         chapter = sel.xpath(
@@ -46,29 +69,26 @@ class NovelsSpider(scrapy.Spider):
                 yield scrapy.Request(url, callback=self.parse_chapter)
 
         showPage = sel.xpath('//div[@class="page"]/a')
-        startPage = 0
-        nextPage = 0
-        endPage = 0
+        nextPage = -1
+        endPage = -1
         next_href = showPage
         for a in showPage:
             s = str(a.extract())
             href = a.xpath('./@href').extract_first()
-            page = 0
+            page = -1
             if href != None:
                 page = int(href.split('/')[2].split('_')[1])
-            if s.find("下一页") >=0:
+            if s.find("下一页") > 0:
                 nextPage = page
                 next_href = a
-            elif s.find("首页") >= 0:
-                startPage = page
-            elif s.find("尾页") >= 0:
+            elif s.find("尾页") > 0:
                 endPage = page
 
-        if startPage <= nextPage and nextPage <= endPage:
+        if nextPage <= endPage and nextPage >= 0 and endPage >= 0:
             href = next_href.xpath('./@href').extract_first()
-            if len(href) > 0:
-                url = "http://m.txtwan.cc{}".format(href)
-                yield scrapy.Request(url, callback=self.parse_novel)
+            url = "http://m.txtwan.cc{}".format(href)
+            yield scrapy.Request(url, callback=self.parse_novel)
+                
 
     def parse_chapter(self, response):
         sel = Selector(text=response.text, type='html')
