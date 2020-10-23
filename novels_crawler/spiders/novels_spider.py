@@ -44,12 +44,13 @@ class NovelsSpider(scrapy.Spider):
             page = -1
             if href != None:
                 page = int(href.split("/")[2].split('_')[1])
-            if s.find('下一页') > 0:
+            if s.find('下页') > 0:
                 next_page = page
                 next_href = a
             elif s.find('尾页') > 0:
                 end_page = page
-
+        
+        print("next_page:{}, end_page:{}".format(next_page, end_page))
         if next_page <= end_page and next_page >= 0 and end_page >= 0:
             href = next_href.xpath('./@href').extract_first()
             url = "http://m.txtwan.cc{}".format(href)
