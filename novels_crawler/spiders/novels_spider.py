@@ -50,7 +50,6 @@ class NovelsSpider(scrapy.Spider):
             elif s.find('尾页') > 0:
                 end_page = page
         
-        print("next_page:{}, end_page:{}".format(next_page, end_page))
         if next_page <= end_page and next_page >= 0 and end_page >= 0:
             href = next_href.xpath('./@href').extract_first()
             url = "http://m.txtwan.cc{}".format(href)
